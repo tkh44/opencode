@@ -24,6 +24,10 @@ export namespace Flag {
   export const OPENCODE_EXPERIMENTAL_BASH_MAX_OUTPUT_LENGTH = number("OPENCODE_EXPERIMENTAL_BASH_MAX_OUTPUT_LENGTH")
   export const OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS = number("OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS")
 
+  // Bedrock proxy support
+  export const OPENCODE_BEDROCK_BASE_URL = process.env["OPENCODE_BEDROCK_BASE_URL"]
+  export const OPENCODE_BEDROCK_SKIP_AUTH = truthy("OPENCODE_BEDROCK_SKIP_AUTH")
+
   function truthy(key: string) {
     const value = process.env[key]?.toLowerCase()
     return value === "true" || value === "1"

@@ -133,6 +133,47 @@ To use Amazon Bedrock with OpenCode:
    /models
    ```
 
+#### Using a Bedrock Proxy
+
+If your organization routes Bedrock requests through a proxy gateway that handles authentication:
+
+1. Set the proxy URL and skip local AWS authentication:
+
+   ```bash
+   OPENCODE_BEDROCK_BASE_URL="https://your-proxy.company.com/bedrock" OPENCODE_BEDROCK_SKIP_AUTH="1" opencode
+   ```
+
+   Or add them to your bash profile:
+
+   ```bash title="~/.bash_profile"
+   export OPENCODE_BEDROCK_BASE_URL="https://your-proxy.company.com/bedrock"
+   export OPENCODE_BEDROCK_SKIP_AUTH="1"
+   ```
+
+2. Alternatively, configure via your opencode config:
+
+   ```json title="opencode.json"
+   {
+     "$schema": "https://opencode.ai/config.json",
+     "provider": {
+       "amazon-bedrock": {
+         "options": {
+           "baseURL": "https://your-proxy.company.com/bedrock",
+           "skipAuth": true,
+           "headers": {
+             "X-Custom-Header": "value"
+           }
+         }
+       }
+     },
+     "model": "amazon-bedrock/anthropic.claude-sonnet-4-5-20250929-v1:0"
+   }
+   ```
+
+:::note
+When using `OPENCODE_BEDROCK_SKIP_AUTH`, OpenCode will not attempt to use AWS credentials. Your proxy must handle authentication with AWS Bedrock.
+:::
+
 ---
 
 ### Anthropic

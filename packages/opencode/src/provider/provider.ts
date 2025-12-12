@@ -144,24 +144,51 @@ export namespace Provider {
         },
       }
     },
-    "amazon-bedrock": async () => {
+    "amazon-bedrock": async (input) => {
+      // Standard AWS credentials
       const [awsProfile, awsAccessKeyId, awsBearerToken, awsRegion] = await Promise.all([
         Env.get("AWS_PROFILE"),
         Env.get("AWS_ACCESS_KEY_ID"),
         Env.get("AWS_BEARER_TOKEN_BEDROCK"),
         Env.get("AWS_REGION"),
       ])
-      if (!awsProfile && !awsAccessKeyId && !awsBearerToken) return { autoload: false }
+
+      // Config options (env vars take precedence)
+      const configBaseURL = input?.options?.baseURL
+      const configSkipAuth = input?.options?.skipAuth
+      const configHeaders = input?.options?.headers
+
+      const effectiveBaseURL = Flag.OPENCODE_BEDROCK_BASE_URL || configBaseURL
+      const effectiveSkipAuth = Flag.OPENCODE_BEDROCK_SKIP_AUTH || configSkipAuth === true
+
+      const hasAwsCredentials = awsProfile || awsAccessKeyId || awsBearerToken
+      const hasProxyConfig = !!effectiveBaseURL
+      if (!hasAwsCredentials && !hasProxyConfig) return { autoload: false }
 
       const region = awsRegion ?? "us-east-1"
 
-      const { fromNodeProviderChain } = await import(await BunProc.install("@aws-sdk/credential-providers"))
+      const options: Record<string, any> = { region }
+
+      if (effectiveBaseURL) {
+        options.baseURL = effectiveBaseURL
+      }
+
+      if (configHeaders) {
+        options.headers = configHeaders
+      }
+
+      if (!effectiveSkipAuth && hasAwsCredentials) {
+        const { fromNodeProviderChain } = await import(await BunProc.install("@aws-sdk/credential-providers"))
+        options.credentialProvider = fromNodeProviderChain()
+      }
+
+      if (effectiveSkipAuth && effectiveBaseURL) {
+        options.apiKey = "proxy"
+      }
+
       return {
         autoload: true,
-        options: {
-          region,
-          credentialProvider: fromNodeProviderChain(),
-        },
+        options,
         async getModel(sdk: any, modelID: string, _options?: Record<string, any>) {
           // Skip region prefixing if model already has global prefix
           if (modelID.startsWith("global.")) {
