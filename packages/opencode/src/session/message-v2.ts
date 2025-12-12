@@ -431,7 +431,7 @@ export namespace MessageV2 {
         }
         result.push(userMessage)
         for (const part of msg.parts) {
-          if (part.type === "text" && !part.ignored)
+          if (part.type === "text" && !part.ignored && part.text)
             userMessage.parts.push({
               type: "text",
               text: part.text,
@@ -468,7 +468,7 @@ export namespace MessageV2 {
         }
         result.push(assistantMessage)
         for (const part of msg.parts) {
-          if (part.type === "text")
+          if (part.type === "text" && part.text)
             assistantMessage.parts.push({
               type: "text",
               text: part.text,
@@ -517,7 +517,7 @@ export namespace MessageV2 {
                 callProviderMetadata: part.metadata,
               })
           }
-          if (part.type === "reasoning") {
+          if (part.type === "reasoning" && part.text) {
             assistantMessage.parts.push({
               type: "reasoning",
               text: part.text,
